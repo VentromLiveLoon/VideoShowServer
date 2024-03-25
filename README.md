@@ -14,7 +14,7 @@
 
 ## 项目依赖
 
-zlmediakit 	server 流媒体服务器
+zlmediakit 	server 流媒体服务器 （如何安装访问：https://github.com/ZLMediaKit/ZLMediaKit）
 
 go			go语言开发环境
 
