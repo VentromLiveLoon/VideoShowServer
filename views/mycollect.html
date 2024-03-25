@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VideoShow</title>
+  <style>
+    .listbody{
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+    }
+    .titlebody{
+
+    }
+    .playplace{
+      width: 100%;
+      max-width: 100%;
+    }
+    .video{
+      width: 100%;
+      max-width: 100%;
+    }
+    .collect{
+      background-color: #ff69b4; /* 粉色背景 */
+      color: white; /* 白色字体 */
+      border: none; /* 无边框 */
+      padding: 10px 20px; /* 内边距 */
+      text-align: center; /* 文本居中 */
+      text-decoration: none; /* 无下划线 */
+      display: inline-block; /* 块级元素 */
+      font-size: 16px; /* 字体大小 */
+      margin: 4px 2px; /* 外边距 */
+      cursor: pointer; /* 鼠标悬停时显示指针 */
+      border-radius: 4px; /* 圆角边框 */
+      transition: background-color 0.3s; /* 背景颜色过渡效果 */
+    }
+    .collect:hover{
+      background-color: #ff8cda; /* 鼠标悬停时的背景颜色 */
+    }
+    .collect:active{
+      background-color: #ff8cda; /* 鼠标悬停时的背景颜色 */
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>VideoShow</h1>
+    <button onclick="loadList()">点我加载</button>
+    <div id="video_list">
+      <!-- <div class="listbody">
+        <div class="titlebody">
+          <h2 class="title" >标题</h2>
+          <h4 class="collectid" >1</h4>
+        </div>
+        <div class="playplace">
+          <video class="video"></video>
+        </div>
+        <div class="operate">
+          <button class="collect">取消收藏</button>
+        </div>
+      </div> -->
+        
+      </div>
+    </div>
+  </div>
+
+  <script src="../static/js/hls.js"></script>
+  <script>
+   
+    
+    var lock=false;
+
+    loadList()
+
+
+    //scroll to load
+    window.addEventListener('scroll', function () {
+        let clientHeight = document.documentElement.clientHeight;
+        let scrollHeight = document.body.scrollHeight;
+        let scrollTop = document.documentElement.scrollTop;
+        console.log("the lock is::",lock)
+        if ((lock==false)&&((clientHeight+scrollTop)>=(scrollHeight-100))) {
+            console.log("loading....")
+            loadList();
+            
+        }
+    })
+    function deleteOutOf(){
+      var listbodys=document.getElementsByClassName("listbody")
+      if (listbodys.length>5){
+        var first=listbodys[0]
+        first.remove()
+      }
+    }
+
+    function loadList(){
+      // Lock to load list
+      lock=true
+      var collectids=document.getElementsByClassName("collectid")
+            
+        console.log(collectids.length)
+        let form=new FormData()
+        if (collectids.length>0){
+            var collectid=collectids[collectids.length-1];
+            console.log("Get id num is::",collectid.textContent)
+            form.append("collectid",collectid.textContent)
+        }else{
+            form.append("collectid",0)
+        }
+      // Get video info data from server
+      fetch("/collect/scroll/next",{
+        method:'post',
+        body:form
+      }).then(response=>{
+        console.log(response.status)
+        return response.text()
+      }).then(data=>{
+        console.log(data)
+        var params = new URLSearchParams(data)
+        // params['title']
+        // params['m3u8url']
+        // params['id']
+        // params['collectid']
+
+        // Generate html data to html
+        var video_list = document.getElementById("video_list")
+        // Generate listbody
+        var listbody = document.createElement("div")
+        listbody.className="listbody"
+        // Generate  titlebody and  title
+        var titlebody = document.createElement("div")
+        titlebody.className="titlebody" 
+        var title = document.createElement("h2")
+        title.className="title";
+        title.textContent=params.get('title')
+        var collectid = document.createElement("h4")
+        collectid.className="collectid"
+        collectid.textContent=params.get('collectid')
+        // Generate video body and title
+        var playplace = document.createElement('div')
+        playplace.className="playplace"
+
+        var video = document.createElement('video')
+        video.className="video"
+        var hls = new Hls()
+        hls.loadSource(params.get('m3u8url'))
+        hls.attachMedia(video)
+        hls.on(Hls.Events.MANIFEST_PARSED,function(){
+          video.controls=true
+          video.pause()
+        })
+        
+
+        // Generate opearete 
+        var operate = document.createElement('div')
+        operate.className="operate"
+        var collect = document.createElement('button')
+        collect.className="collect"
+        collect.textContent="取消收藏"
+        collect.onclick=function(){
+          var fromdata = new FormData()
+          fromdata.append('collectid',params.get('id'))
+          fetch('/collect/cancel',{
+              method:'post',
+              body:fromdata
+          })
+          .then(response=>{
+              if (!response.ok){
+              console.log(response.status)
+              }
+              return response.text()
+          })
+          .then(data=>{
+              if (data=="Already canceled!!"){
+              alert("You are already canceled ,Message::"+data)
+              }
+              console.log(data)
+              listbody.remove();
+          })
+
+        }
+        // Combing
+        titlebody.appendChild(title)
+        titlebody.appendChild(collectid)
+
+        playplace.appendChild(video)
+
+        operate.appendChild(collect)
+
+
+        listbody.appendChild(titlebody)
+        listbody.appendChild(playplace)
+        listbody.appendChild(operate)
+
+
+        video_list.appendChild(listbody)
+        // Delete out list
+        deleteOutOf();
+        // Unlock to load next list
+        lock=false
+
+
+
+      }).catch((error)=>{
+        alert("没有了快去收藏吧！！")
+      })
+    }
+  </script>
+</body>
+</html>
