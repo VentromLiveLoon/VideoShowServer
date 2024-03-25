@@ -25,6 +25,7 @@ ffmpeg	       视频的推流
 ## 项目配置
 
 ### zlmediakit 服务器配置
+了解zlmediakit访问：https://github.com/ZLMediaKit/ZLMediaKit
 
 zlmediakit服务器的config.init的配置最好如下所示,(不了解最好不要随意配置)
 
