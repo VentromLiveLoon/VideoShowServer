@@ -238,8 +238,8 @@ db_host = 127.0.0.1
 db_port = 3306
 
 # 配置你的mysql的用户名和密码就可以了
-db_user = windstorm
-db_password = 057721
+db_user = $username
+db_password = $password
 db_name = video_show
 db_charset = utf8
 
